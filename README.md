@@ -43,13 +43,13 @@ The system collects data from sensors and processes it using ESP32. The data is 
 ## 🧩 Components
 
 ### pH Sensor
-![pH Sensor](components/PH.jpg)
+![pH Sensor](component/PH.jpg)
 
 ### Turbidity Sensor
-![Turbidity](components/TURBIDITY.jpg)
+![Turbidity](component/TURBIDITY.jpg)
 
 ### DS18B20 Temperature Sensor
-![DS18B20](components/DS18B20.jpeg)
+![DS18B20](component/DS18B20.jpeg)
 
 
 ## 🔧 Working Principle
