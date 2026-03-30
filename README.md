@@ -40,6 +40,16 @@ The system uses sensors connected to a microcontroller and sends real-time data 
 ## 🔌 System Architecture
 
 The system collects data from sensors and processes it using ESP32. The data is then transmitted over Wi-Fi to the Blynk cloud, where users can monitor it in real time.
+## 🧩 Components
+
+### pH Sensor
+![pH Sensor](components/PH.jpg)
+
+### Turbidity Sensor
+![Turbidity](components/TURBIDITY.jpg)
+
+### DS18B20 Temperature Sensor
+![DS18B20](components/DS18B20.jpeg)
 
 
 ## 🔧 Working Principle
