@@ -1,0 +1,17 @@
+Temperature Sensor Connections:
+VCC → 3.3V (ESP32)
+GND → GND (ESP32)
+DATA → GPIO 4 
+Important:
+Add 4.7kΩ resistor between DATA and VCC
+
+
+PH Sensor Connections:
+VCC → 5V /3.3v(ESP32 VIN pin)
+GND → GND
+Output PO → GPIO 35 
+
+Turbidity Sensor Connections:
+VCC → 5V
+GND → GND
+DATA → GPIO 34
