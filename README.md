@@ -64,12 +64,6 @@ The system collects data from sensors and processes it using ESP32. The data is 
 | pH          | 6.5 – 8.5         |
 | Turbidity   | Low (Clear Water) |
 
-## 🧩 Components
-
-![DS18B20](components/ds18b20.png)
-![Turbidity Sensor](components/turbidity_sensor.png)
-![pH Sensor](components/ph_sensor.png)
-
 ## ⚙️ Installation & Setup
 
 1. Install Arduino IDE
@@ -94,10 +88,3 @@ The system collects data from sensors and processes it using ESP32. The data is 
 * Solar-powered system
 * Cloud data analytics
 
-
-
-## ⭐ Support
-
-If you like this project, please ⭐ star the repository!
-
----
