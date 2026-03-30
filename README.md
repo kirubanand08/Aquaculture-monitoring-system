@@ -72,7 +72,7 @@ The system collects data from sensors and processes it using ESP32. The data is 
 | ----------- | ----------------- |
 | Temperature | 20°C – 30°C       |
 | pH          | 6.5 – 8.5         |
-| Turbidity   | Low (Clear Water) |
+| Turbidity   | Less than 50-80 NTU|
 
 ## ⚙️ Installation & Setup
 
