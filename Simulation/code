@@ -1,0 +1,122 @@
+//------------RUN THIS CODE IN ARDUINO TO GENERATE HEX FILE--------------------------------------------------------------------------------------------------------------------
+#include <LiquidCrystal.h>
+
+// LCD pins
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
+// Sensor pins
+#define PH_PIN A0
+#define TURBIDITY_PIN A1
+
+unsigned long int avgValue;
+int buf[10], temp;
+
+// Calibration
+float calibration_value = 21.34;  
+
+void setup()
+{
+  Serial.begin(9600);
+
+  lcd.begin(16, 2);
+  lcd.setCursor(0, 0);
+  lcd.print("Water Monitor");
+  delay(2000);
+  lcd.clear();
+}
+
+void loop()
+{
+  // -------- pH SENSOR --------
+  for(int i = 0; i < 10; i++)
+  {
+    buf[i] = analogRead(PH_PIN);
+    delay(10);
+  }
+
+  // Sort values
+  for(int i = 0; i < 9; i++)
+  {
+    for(int j = i + 1; j < 10; j++)
+    {
+      if(buf[i] > buf[j])
+      {
+        temp = buf[i];
+        buf[i] = buf[j];
+        buf[j] = temp;
+      }
+    }
+  }
+
+  avgValue = 0;
+  for(int i = 2; i < 8; i++)
+    avgValue += buf[i];
+
+  float voltage = (float)avgValue * 5.0 / 1023.0 / 6.0;
+  float phValue = -5.70 * voltage + calibration_value;
+
+  // -------- TURBIDITY --------
+  int turbidityRaw = analogRead(TURBIDITY_PIN);
+  float turbidityVoltage = turbidityRaw * (5.0 / 1023.0);
+
+  float ntu;
+
+  if (turbidityVoltage < 2.5)
+    ntu = 3000;
+  else
+    ntu = -1120.4 * sq(turbidityVoltage) + 
+           5742.3 * turbidityVoltage - 
+           4353.8;
+
+  if (ntu < 0) ntu = 0;  // avoid negative values
+
+  // -------- STATUS CHECK --------
+  String phStatus;
+  String turbStatus;
+
+  // pH condition
+  if (phValue < 6.5)
+    phStatus = "LOW";
+  else if (phValue > 8.5)
+    phStatus = "HIGH";
+  else
+    phStatus = "OK";
+
+  // Turbidity condition
+  if (ntu < 50)
+    turbStatus = "GOOD";
+  else if (ntu <= 100)
+    turbStatus = "MOD";
+  else
+    turbStatus = "HIGH";
+
+  // -------- SERIAL OUTPUT --------
+  Serial.print("pH: ");
+  Serial.print(phValue, 2);
+  Serial.print(" (");
+  Serial.print(phStatus);
+  Serial.print(") | NTU: ");
+  Serial.print(ntu);
+  Serial.print(" (");
+  Serial.print(turbStatus);
+  Serial.println(")");
+
+  // -------- LCD DISPLAY --------
+  lcd.clear();
+
+  // Line 1 → pH
+  lcd.setCursor(0, 0);
+  lcd.print("pH:");
+  lcd.print(phValue, 1);
+  lcd.print(" ");
+  lcd.print(phStatus);
+
+  // Line 2 → Turbidity
+  lcd.setCursor(0, 1);
+  lcd.print("NTU:");
+  lcd.print(ntu, 0);
+  lcd.print(" ");
+  lcd.print(turbStatus);
+
+  delay(1500);
+}
