@@ -1,0 +1,139 @@
+//------------------------------------------------------------------------BLYNK INTERFACING-------------------------------------------------------------------------------
+// LOAD YOUR TOKEN GENERATERED AT BLYNK IOT PLATFORM
+
+#define BLYNK_TEMPLATE_ID "TMPL6CuEc0mLm"
+#define BLYNK_TEMPLATE_NAME "DS18B20 Temp Sensor"
+#define BLYNK_AUTH_TOKEN "f9cmOV8ZeyLVHUTyub15K-cN3Xs79bYD"
+
+#include <WiFi.h>
+#include <BlynkSimpleEsp32.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
+
+// PIN DEFINITIONS 
+#define PH_PIN 35
+#define TURBIDITY_PIN 34
+#define ONE_WIRE_BUS 4
+
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature sensors(&oneWire);
+
+char ssid[] = "RoboTech";
+char pass[] = "aslam12345";
+
+BlynkTimer timer;
+
+
+float voltagePH, phValue;
+float turbVoltage, turbidityNTU;
+float temperatureC;
+
+
+float calibration_value = 21.34;
+
+// ---------------- ALERT FLAGS ----------------
+bool phAlertSent = false;
+bool turbAlertSent = false;
+bool tempAlertSent = false;
+
+int readADC(int pin) {
+  int sum = 0;
+  for (int i = 0; i < 10; i++) {
+    sum += analogRead(pin);
+    delay(10);
+  }
+  return sum / 10;
+}
+
+void sendTemperature() {
+
+  // ===== TEMPERATURE =====
+  sensors.requestTemperatures();
+  temperatureC = sensors.getTempCByIndex(0);
+  float tempF = sensors.toFahrenheit(temperatureC);
+
+  // ===== pH =====
+  int phADC = readADC(PH_PIN);
+  voltagePH = phADC * (3.3 / 4095.0);
+  phValue = -5.70 * voltagePH + calibration_value;
+  phValue = constrain(phValue, 0, 14);
+
+  // ===== TURBIDITY =====
+  int turbADC = readADC(TURBIDITY_PIN);
+  turbVoltage = turbADC * (3.3 / 4095.0);
+
+  if (turbVoltage < 2.5) {
+    turbidityNTU = -1120.4 * sq(turbVoltage) + 5742.3 * turbVoltage - 4352.9;
+  } else {
+    turbidityNTU = 0;
+  }
+
+  if (turbidityNTU < 0) turbidityNTU = 0;
+
+  // ===== SEND DATA TO BLYNK =====
+//---------CONFIGURE VECTOR PROPERLY---------
+  Blynk.virtualWrite(V0, temperatureC);
+  Blynk.virtualWrite(V1, tempF);
+  Blynk.virtualWrite(V2, phValue);
+  Blynk.virtualWrite(V3, turbidityNTU);
+
+  // ALERT CONDITIONS
+
+//  pH Alert
+
+  if ((phValue < 6.5 || phValue > 8.5) && !phAlertSent) {
+    Blynk.logEvent("ph_alert", "Warning! pH level is unsafe");
+    phAlertSent = true;
+  }
+  if (phValue >= 6.5 && phValue <= 8.5) {
+    phAlertSent = false;
+  }
+// Turbidity Alert
+
+  if (turbidityNTU > 50 && !turbAlertSent) {
+    Blynk.logEvent("turbidity_alert", "Warning! Water is too turbid");
+    turbAlertSent = true;
+  }
+  if (turbidityNTU <= 50) {
+    turbAlertSent = false;
+  }
+//  Temperature Alert
+
+  if (temperatureC > 32 && !tempAlertSent) {
+    Blynk.logEvent("temp_alert", "Warning! Temperature too high");
+    tempAlertSent = true;
+  }
+  if (temperatureC <= 32) {
+    tempAlertSent = false;
+  }
+
+  // ===== SERIAL MONITOR =====
+  Serial.println("-------- Water Quality --------");
+
+  Serial.print("Temperature: ");
+  Serial.print(temperatureC);
+  Serial.println(" °C");
+
+  Serial.print("pH Value: ");
+  Serial.println(phValue);
+
+  Serial.print("Turbidity: ");
+  Serial.print(turbidityNTU);
+  Serial.println(" NTU");
+
+  Serial.println("-------------------------------");
+}
+
+void setup() {
+  Serial.begin(115200);
+  sensors.begin();
+
+  Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
+
+  timer.setInterval(2000L, sendTemperature);
+}
+
+void loop() {
+  Blynk.run();
+  timer.run();
+}
